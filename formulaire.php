@@ -45,6 +45,7 @@
     .form-group input {
       flex: 1;
       padding: 5px;
+    }
   </style>
 </head>
 
@@ -60,8 +61,14 @@
   <legend> Renseignements Personnels</legend>
 
   
+  <!-- Photo -->
   <label>Photo :</label>
-    <input type="file" name="photo" accept="image/*" required><br><br>
+  <input type="file" name="photo" accept="image/*" <?= empty($_POST['photo_path']) ? 'required' : '' ?>>
+  <?php if (!empty($_POST['photo_path'])): ?>
+      <br><small>Photo actuelle : <?= basename($_POST['photo_path']) ?></small>
+      <input type="hidden" name="photo_existante" value="<?= $_POST['photo_path'] ?>">
+  <?php endif; ?>
+  <br><br>
 
 
   <div class="form-group">
@@ -102,49 +109,49 @@
 <fieldset>
 <legend>Renseignements Acadimique</legend>
 
-<label for="Filliere"> Vous etes en :</label>
+<label for="Filiere"> Vous etes en :</label>
 <br><br>
 
 
 <label for="2ap"> 2AP: </label>
-<input type="radio" id="2ap" name="filliere" value="2AP" <?= (isset($_POST['filiere']) && $_POST['filiere']=="2AP") ? 'checked' : '' ?>>
+<input type="radio" id="2ap" name="filiere" value="2AP" <?= (isset($_POST['filiere']) && $_POST['filiere']=="2AP") ? 'checked' : '' ?>>
 
 
 
 <label for="gstr"> | GSTR: </label>
-<input type="radio" id="gstr" name="filliere" value="gstr" <?= (isset($_POST['filiere']) && $_POST['filiere']=="gstr") ? 'checked' : '' ?> >
+<input type="radio" id="gstr" name="filiere" value="gstr" <?= (isset($_POST['filiere']) && $_POST['filiere']=="gstr") ? 'checked' : '' ?> >
 
 
 
 <label for="gi"> | GI: </label>
-<input type="radio" id="gi" name="filliere" value="gi" <?= (isset($_POST['filiere']) && $_POST['filiere']=="gi") ? 'checked' : '' ?>>
+<input type="radio" id="gi" name="filiere" value="gi" <?= (isset($_POST['filiere']) && $_POST['filiere']=="gi") ? 'checked' : '' ?>>
 
 
 
 <label for="scm"> | SCM: </label>
-<input type="radio" id="scm" name="filliere" value="scm" <?= (isset($_POST['filiere']) && $_POST['filiere']=="scm") ? 'checked' : '' ?>>
+<input type="radio" id="scm" name="filiere" value="scm" <?= (isset($_POST['filiere']) && $_POST['filiere']=="scm") ? 'checked' : '' ?>>
 
 
 
 <label for="gc"> | GC: </label>
-<input type="radio" id="gc" name="filliere" value="gc" <?= (isset($_POST['filiere']) && $_POST['filiere']=="gc") ? 'checked' : '' ?>>
+<input type="radio" id="gc" name="filiere" value="gc" <?= (isset($_POST['filiere']) && $_POST['filiere']=="gc") ? 'checked' : '' ?>>
 
 
 
 <label for="ms"> | MS: </label>
-<input type="radio" id="ms" name="filliere" value="ms" <?= (isset($_POST['filiere']) && $_POST['filiere']=="ms") ? 'checked' : '' ?>>
+<input type="radio" id="ms" name="filiere" value="ms" <?= (isset($_POST['filiere']) && $_POST['filiere']=="ms") ? 'checked' : '' ?>>
 
 
 <br><br>
 
 <label for="1er"> 1er annee: </label>
-<input type="radio" id="1er" name="Annee" value="1" >
+<input type="radio" id="1er" name="Annee" value="1" <?= (isset($_POST['Annee']) && $_POST['Annee']=="1") ? 'checked' : '' ?>>
 
 <label for="2eme"> | 2eme annees: </label>
-<input type="radio" id="2eme" name="Annee" value="2">
+<input type="radio" id="2eme" name="Annee" value="2" <?= (isset($_POST['Annee']) && $_POST['Annee']=="2") ? 'checked' : '' ?>>
 
 <label for="3eme"> | 3eme annees: </label>
-<input type="radio" id="3eme" name="Annee" value="3">
+<input type="radio" id="3eme" name="Annee" value="3" <?= (isset($_POST['Annee']) && $_POST['Annee']=="3") ? 'checked' : '' ?>>
 
 <br><br>
 
