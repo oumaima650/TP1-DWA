@@ -62,12 +62,22 @@
 
   
   <!-- Photo -->
+  <div class="form-group">
   <label>Photo :</label>
-  <input type="file" name="photo" accept="image/*" <?= empty($_POST['photo_path']) ? 'required' : '' ?>>
-  <?php if (!empty($_POST['photo_path'])): ?>
-      <br><small>Photo actuelle : <?= basename($_POST['photo_path']) ?></small>
-      <input type="hidden" name="photo_existante" value="<?= $_POST['photo_path'] ?>">
-  <?php endif; ?>
+  <div style="flex: 1;">
+      <?php
+      $photoActuelle = $_POST['photo_path'] ?? '';
+      if (!empty($photoActuelle) && file_exists($photoActuelle)) {
+          echo '<div style="margin-bottom: 10px;">';
+          echo '<img src="' . htmlspecialchars($photoActuelle) . '" alt="Photo actuelle" style="max-width: 100px; border: 1px solid #ccc;">';
+          echo '<br><small>Photo actuelle : ' . basename($photoActuelle) . '</small>';
+          echo '</div>';
+      }
+      ?>
+      <input type="file" name="photo" accept="image/*">
+      <input type="hidden" name="photo_path" value="<?= htmlspecialchars($photoActuelle) ?>">
+  </div>
+  </div>
   <br><br>
 
 
@@ -99,7 +109,7 @@
   <br><br>
   <div class="form-group">
   <label for="Email">Email :</label>
-  <input type="Email" name ="Email" id="Email" placeholder="Email">
+  <input type="Email" name="Email" id="Email" placeholder="Email" value="<?= isset($_POST['Email']) ? htmlspecialchars($_POST['Email']) : '' ?>">
   </div>
    
   </fieldset>

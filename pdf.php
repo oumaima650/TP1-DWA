@@ -2,6 +2,7 @@
 // Inclusion de la bibliothèque FPDF pour la génération de PDF
 require("fpdf186/fpdf.php");
 
+
 //1-verification de la methode et de l'action
 /* 
 Vérification que la requête provient d'un formulaire POST
@@ -68,31 +69,105 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
                 $newWidth = $newHeight * $ratio;
             }
             
-            $pdf->Image($photoPath, 150, 10, $newWidth, $newHeight);
+            $pdf->Image($photoPath, 10, 10, $newWidth, $newHeight);
+            // Nom à droite (aligné à droite)
+            $pdf->SetFont('Times', 'B', 40);
+            $pdf->SetTextColor(44, 62, 80);
+            $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
+            $pdf->Ln(5);
+            // Informations académiques structurées
+            switch ($filiere) {
+                case 'gi':
+                    $filiere = 'génie Informatique';
+                    break;
+                case '2AP':
+                    $filiere = 'Développement d\'Applications et d\'Infrastructures Informatiques';
+                    break;
+                case 'GSTR':
+                    $filiere = 'Développement de Projets Informatiques';
+                    break;
+                case 'SCM' :
+                    $filiere = 'Systèmes et Cloud Computing';
+                    break;
+                case 'GC' :
+                    $filiere = 'Génie Cybernétique';
+                    break;
+                case 'MS' :
+                    $filiere = 'Maintenance des Systèmes';
+                    break;
+                default:
+                    $filiere = 'Non renseigné';
+            }
+            $pdf->SetFont('Times', 'B', 20);
+            $pdf->Cell(0 , 15 , utf8_decode('Etudiant en ' .$annee . ' ème année ' .$filiere . ' à l\'ENSA de Tétouan  '), 0, 1, 'R');
+            /*
+            $pdf->SetFont('Times', 'B', 20);
+            $pdf->Cell(20, 6, utf8_decode('Filière :' ), 0, 0, 'R');
+            $pdf->SetFont('Times', '', 20);
+            $pdf->Cell(0, 6, utf8_decode($filiere), 0, 1, 'R');
+            $pdf->Ln(5);
+            $pdf->SetFont('Times', 'B', 20);
+            $pdf->Cell(20, 6, utf8_decode('Année :' ), 0, 0, 'R');
+            $pdf->SetFont('Times', '', 20);
+            $pdf->Cell(0, 6, utf8_decode($annee . 'ème année'), 0, 1, 'R');
+            $pdf->Ln(3);
+            */
+            // Ajuster la position Y pour la suite du contenu
+            $photoBottom = 10 + $newHeight;
+            $pdf->SetY(max($photoBottom + 5, 30)); // Au moins 30mm du haut
         } catch (Exception $e) {
             // En cas d'erreur, on continue sans photo
             error_log("Erreur image PDF: " . $e->getMessage());
-        }
-    }
+            // Sans photo, on met juste le nom à droite
+            $pdf->SetFont('Times', 'B', 40);
+            $pdf->SetTextColor(44, 62, 80);
+            $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
+            $pdf->Ln(5);
 
+            // Informations académiques structurées
+            $pdf->SetFont('Times', 'B', 20);
+            $pdf->Cell(20, 6, utf8_decode('Filière :'), 0, 0, 'R');
+            $pdf->SetFont('Times', '', 20);
+            $pdf->Cell(0, 6, utf8_decode($filiere), 0, 1, 'R');
+
+            $pdf->SetFont('Times', 'B', 20);
+            $pdf->Cell(20, 6, utf8_decode('Année :'), 0, 0, 'R');
+            $pdf->SetFont('Times', '', 20);
+            $pdf->Cell(0, 6, utf8_decode($annee . 'ème année'), 0, 1, 'R');
+            $pdf->Ln(3);
+        }
+    }else{
+        // Sans photo, on met juste le nom à droite
+        $pdf->SetFont('Times', 'B', 40);
+        $pdf->SetTextColor(44, 62, 80);
+        $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
+        $pdf->Ln(5);
+        // Informations académiques structurées
+        $pdf->SetFont('Times', 'B', 20);
+        $pdf->Cell(40, 6, utf8_decode('Filière :'), 0, 0, 'R');
+        $pdf->SetFont('Times', '', 20);
+        $pdf->Cell(0, 6, utf8_decode($filiere), 0, 1, 'R');
+
+        $pdf->SetFont('Times', 'B', 20);
+        $pdf->Cell(40, 6, utf8_decode('Année :'), 0, 0, 'R');
+        $pdf->SetFont('Times', '', 20);
+        $pdf->Cell(0, 6, utf8_decode($annee . 'ème année'), 0, 1, 'R');
+        $pdf->Ln(3);
+    }
+/*
     // Définition de la police pour le titre principal (Times, Gras, 20pt)
     $pdf->SetFont('Times', 'B', 20);
     // Définition de la couleur du texte (bleu foncé)
     $pdf->SetTextColor(44, 62, 80);
 
     if ($photoPath && file_exists($photoPath)) {
-        $pdf->Cell(130, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'L');
+        $pdf->Cell(130, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
         // Espace après la photo
         $pdf->SetY(70);
     } else {
-        $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'L');
+        $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
         $pdf->Ln(5);
     }
-/*
-    // Ajout du titre centré avec un saut de ligne automatique 
-    $pdf->Cell(0, 15, utf8_decode($prenom . ' ' . $nom), 0, 1, 'L');
-    // Ajout d'un espace vertical
-    $pdf->Ln(5);
 */
     // === FONCTION POUR CRÉER UNE SECTION ===
     // on a cree une fonction pour éviter la répétition de code pour chaque section
@@ -147,22 +222,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
         $pdf->Cell(0, 6, utf8_decode($value), 0, 1, 'L');
     }
     $pdf->Ln(5);
-
-    // === FORMATION ACADÉMIQUE ===
-    
-    ajouterSection($pdf, 'FORMATION ACADÉMIQUE', '');
-    
-    // Informations académiques structurées
-    $pdf->SetFont('Times', 'B', 10);
-    $pdf->Cell(40, 6, utf8_decode('Filière :'), 0, 0, 'L');
-    $pdf->SetFont('Times', '', 10);
-    $pdf->Cell(0, 6, utf8_decode($filiere), 0, 1, 'L');
-
-    $pdf->SetFont('Times', 'B', 10);
-    $pdf->Cell(40, 6, utf8_decode('Année :'), 0, 0, 'L');
-    $pdf->SetFont('Times', '', 10);
-    $pdf->Cell(0, 6, utf8_decode($annee . 'ème année'), 0, 1, 'L');
-    $pdf->Ln(3);
 
     // === MODULES ÉTUDIÉS ===
     if (!empty($modules)) {

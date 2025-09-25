@@ -13,7 +13,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $langues = isset($_POST['langues']) ? $_POST['langues'] : [];
 
     // Gestion de l'image
-    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0) {
+    $photoURL = $_POST['photo_path'] ?? null; // Conserver la photo existante par défaut
+
+    if (isset($_FILES['photo']) && $_FILES['photo']['error'] === 0 && $_FILES['photo']['size'] > 0) {
+        // Nouvelle photo uploadée
         $uploadDir = 'uploads/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
@@ -23,13 +26,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if (move_uploaded_file($_FILES['photo']['tmp_name'], $filePath)) {
             $photoURL = $filePath; 
-        } else {
-            $photoURL = null;
         }
-    } else {
-        $photoURL = null;
     }
+    // Si aucune nouvelle photo n'est uploadée, $photoURL conserve l'ancienne valeur
 }
+
 
 
     // Radios
