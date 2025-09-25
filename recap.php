@@ -5,12 +5,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = htmlspecialchars($_POST['Email']);
     $age = htmlspecialchars($_POST['Age']);
     $telephone = htmlspecialchars($_POST['telephone']);
-
+    $linkedin = htmlspecialchars($_POST['LinkedIn'] ?? '');
 
     $stage = isset($_POST['stages']) ? nl2br(htmlspecialchars($_POST['stages'])) : 'Non';
     $projets = isset($_POST['projets']) ? nl2br(htmlspecialchars($_POST['projets'])) : 'Non';
     $centre_interets = isset($_POST['centre_interet']) ? nl2br(htmlspecialchars($_POST['centre_interet'])) : 'Non';
+    $competences = isset($_POST['competences']) ? nl2br(htmlspecialchars($_POST['competences'])) : 'Non renseigné';
     $langues = isset($_POST['langues']) ? $_POST['langues'] : [];
+    $remarques = isset($_POST['remarques']) ? nl2br(htmlspecialchars($_POST['remarques'])) : 'Non renseigné';
+
+    // Gestion du fichier joint
+    $fichierURL = $_POST['fichier_path'] ?? null;
+
+    if (isset($_FILES['fichier_joint']) && $_FILES['fichier_joint']['error'] === 0 && $_FILES['fichier_joint']['size'] > 0) {
+        $uploadDir = 'uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $fileName = basename($_FILES['fichier_joint']['name']);
+        $filePath = $uploadDir . $fileName;
+
+        if (move_uploaded_file($_FILES['fichier_joint']['tmp_name'], $filePath)) {
+            $fichierURL = $filePath; 
+        }
+    }
 
     // Gestion de l'image
     $photoURL = $_POST['photo_path'] ?? null; // Conserver la photo existante par défaut
@@ -31,8 +49,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Si aucune nouvelle photo n'est uploadée, $photoURL conserve l'ancienne valeur
 }
 
-
-
     // Radios
     $filiere = isset($_POST['filiere']) ? htmlspecialchars($_POST['filiere']) : "Non renseigné";
     $annee   = isset($_POST['Annee']) ? htmlspecialchars($_POST['Annee']) : "Non renseigné";
@@ -45,22 +61,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
 
-
-
   if (isset($_POST['action']) && $_POST['action'] === "valider") {
     $contenu = "Nom : $Nom\n";
     $contenu .= "Prénom : $prenom\n";
     $contenu .= "Email : $email\n";
     $contenu .= "Âge : $age\n";
     $contenu .= "Téléphone : $telephone\n";
+    $contenu .= "LinkedIn : " . (!empty($linkedin) ? $linkedin : "Non renseigné") . "\n";
     $contenu .= "Filière : $filiere\n";
     $contenu .= "Année : $annee\n";
     $contenu .= "Modules : " . (!empty($modules) ? implode(", ", $modules) : "Aucun") . "\n";
     $contenu .= "Nombre de projets : $nb_projets\n";
-    $contenu .= "Projets réalisés : " . (!empty($projets) ? $projets : "Non renseigné") . "\n";
-    $contenu .= "Stages réalisés : " . (!empty($stage) ? $stage : "Non renseigné") . "\n";
-    $contenu .= "Centres d'intérêt : " . (!empty($centre_interets) ? $centre_interets : "Non renseigné") . "\n";
+    $contenu .= "Projets réalisés : " . (!empty($projets) ? strip_tags($projets) : "Non renseigné") . "\n";
+    $contenu .= "Stages réalisés : " . (!empty($stage) ? strip_tags($stage) : "Non renseigné") . "\n";
+    $contenu .= "Centres d'intérêt : " . (!empty($centre_interets) ? strip_tags($centre_interets) : "Non renseigné") . "\n";
+    $contenu .= "Compétences : " . (!empty($competences) ? strip_tags($competences) : "Non renseigné") . "\n";
     $contenu .= "Langues : " . (!empty($langues) ? implode(", ", $langues) : "Aucune") . "\n";
+    $contenu .= "Remarques : " . (!empty($remarques) ? strip_tags($remarques) : "Non renseigné") . "\n";
+    $contenu .= "Fichier joint : " . (!empty($fichierURL) ? basename($fichierURL) : "Aucun") . "\n";
 
     // Forcer le téléchargement
     header('Content-Type: text/plain');
@@ -281,6 +299,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="info-label">Téléphone :</div>
                 <div class="info-value"><?= $telephone ?></div>
             </div>
+            <div>
+                <div class="info-row">
+                    <div class="info-label">LinkedIn :</div>
+                    <div class="info-value">
+                        <?php if (!empty($linkedin)): ?>
+                            <?= htmlspecialchars($linkedin) ?>
+                        <?php else: ?>
+                            <span class="no-data">Non renseigné</span>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Informations Académiques -->
@@ -330,6 +360,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="info-value"><?= $centre_interets ?></div>
             </div>
             <div class="info-row">
+                <div class="info-label">Compétences :</div>
+                <div class="info-value"><?= $competences ?></div>
+            </div>
+            <div class="info-row">
                 <div class="info-label">Langues :</div>
                 <div class="info-value">
                     <?php if (!empty($langues)): ?>
@@ -344,6 +378,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
             </div>
         </div>
+        <!-- Remarques -->
+         <div class="section">
+            <h3>Fichier joint et Remarques</h3>
+            
+            <div class="info-row">
+                <div class="info-label">Fichier joint :</div>
+                <div class="info-value">
+                    <?php if (!empty($fichierURL)): ?>
+                        <a href="<?= htmlspecialchars($fichierURL) ?>" target="_blank" class="tag">
+                            📎 <?= basename($fichierURL) ?> 
+                            (<?= round(filesize($fichierURL) / 1024, 2) ?> KB)
+                        </a>
+                    <?php else: ?>
+                        <span class="no-data">Aucun fichier joint</span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Remarques :</div>
+                <div class="info-value"><?= $remarques ?></div>
+            </div>
+        </div>
 
         <!-- Boutons -->
         <div class="buttons-container">
@@ -354,12 +411,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="hidden" name="Email" value="<?= $email ?>">
                 <input type="hidden" name="Age" value="<?= $age ?>">
                 <input type="hidden" name="telephone" value="<?= $telephone ?>">
+                <input type="hidden" name="LinkedIn" value="<?= htmlspecialchars($linkedin) ?>">
                 <input type="hidden" name="filiere" value="<?= $filiere ?>">
                 <input type="hidden" name="Annee" value="<?= $annee ?>">
                 <input type="hidden" name="nb_projets" value="<?= $nb_projets ?>">
                 <input type="hidden" name="projets" value="<?= htmlspecialchars($_POST['projets'] ?? '') ?>">
                 <input type="hidden" name="stages" value="<?= htmlspecialchars($_POST['stages'] ?? '') ?>">
                 <input type="hidden" name="centre_interet" value="<?= htmlspecialchars($_POST['centre_interet'] ?? '') ?>">
+                <input type="hidden" name="competences" value="<?= htmlspecialchars($_POST['competences'] ?? '') ?>">
+                <input type="hidden" name="remarques" value="<?= htmlspecialchars($_POST['remarques'] ?? '') ?>">
+                <input type="hidden" name="fichier_path" value="<?= $fichierURL ?? '' ?>">
 
                 <?php foreach ($modules as $m): ?>
                     <input type="hidden" name="modules[]" value="<?= htmlspecialchars($m) ?>">
@@ -379,13 +440,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="hidden" name="Email" value="<?= $email ?>">
                 <input type="hidden" name="Age" value="<?= $age ?>">
                 <input type="hidden" name="telephone" value="<?= $telephone ?>">
+                <input type="hidden" name="LinkedIn" value="<?= htmlspecialchars($linkedin) ?>">
                 <input type="hidden" name="filiere" value="<?= $filiere ?>">
                 <input type="hidden" name="Annee" value="<?= $annee ?>">
                 <input type="hidden" name="nb_projets" value="<?= $nb_projets ?>">
                 <input type="hidden" name="projets" value="<?= htmlspecialchars($_POST['projets'] ?? '') ?>">
                 <input type="hidden" name="stages" value="<?= htmlspecialchars($_POST['stages'] ?? '') ?>">
                 <input type="hidden" name="centre_interet" value="<?= htmlspecialchars($_POST['centre_interet'] ?? '') ?>">
-                <input type="hidden" name="photo_path" value="<?= $photoURL ?? '' ?>">    
+                <input type="hidden" name="photo_path" value="<?= $photoURL ?? '' ?>"> 
+                <input type="hidden" name="competences" value="<?= htmlspecialchars($_POST['competences'] ?? '') ?>">
+                <input type="hidden" name="remarques" value="<?= htmlspecialchars($_POST['remarques'] ?? '') ?>">
+                <input type="hidden" name="fichier_path" value="<?= $fichierURL ?? '' ?>">   
 
                 <?php foreach ($modules as $m): ?>
                     <input type="hidden" name="modules[]" value="<?= htmlspecialchars($m) ?>">
@@ -406,6 +471,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="hidden" name="Email" value="<?= htmlspecialchars($email) ?>">
                 <input type="hidden" name="Age" value="<?= htmlspecialchars($age) ?>">
                 <input type="hidden" name="telephone" value="<?= htmlspecialchars($telephone) ?>">
+                <input type="hidden" name="LinkedIn" value="<?= htmlspecialchars($linkedin) ?>">
                 <input type="hidden" name="filiere" value="<?= htmlspecialchars($filiere) ?>">
                 <input type="hidden" name="Annee" value="<?= htmlspecialchars($annee) ?>">
                 <input type="hidden" name="nb_projets" value="<?= htmlspecialchars($nb_projets) ?>">
@@ -413,6 +479,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="hidden" name="stages" value="<?= htmlspecialchars($_POST['stages'] ?? '') ?>">
                 <input type="hidden" name="centre_interet" value="<?= htmlspecialchars($_POST['centre_interet'] ?? '') ?>">
                 <input type="hidden" name="photo_path" value="<?= $photoURL ?? '' ?>">
+                <input type="hidden" name="competences" value="<?= htmlspecialchars($_POST['competences'] ?? '') ?>">
+                <input type="hidden" name="remarques" value="<?= htmlspecialchars($_POST['remarques'] ?? '') ?>">
+                <input type="hidden" name="fichier_path" value="<?= $fichierURL ?? '' ?>">
                 
                 <!-- Transmission des tableaux (modules et langues) -->
                 <?php if (!empty($modules)): ?>
@@ -431,110 +500,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </form>
         </div>
     </div>
-<!--
-    <h2>Récapitulatif des informations :</h2>
-    
-    
-    <h3>Photo :</h3>
-    <?php if (!empty($photoURL)): ?>
-        <img src="<?= htmlspecialchars($photoURL) ?>" alt="Photo" style="max-width:200px;">
-    <?php else: ?>
-        <p>Aucune photo téléchargée</p>
-    <?php endif; ?>
-
-
-    <p><strong>Nom :</strong> <?= $Nom ?></p>
-    <p><strong>Prénom :</strong> <?= $prenom ?></p>
-    <p><strong>Email :</strong> <?= $email ?></p>
-    <p><strong>Âge :</strong> <?= $age ?></p>
-    <p><strong>Telephone :</strong> <?= $telephone ?></p>
-    <p><strong>Stage :</strong> <?= $stage ?></p>
-    <p><strong>Projets :</strong> <?= $projets ?></p>
-    <p><strong>Centre d'intérêts :</strong> <?= $centre_interets ?></p>
-    <p><strong>Langues :</strong> 
-    <?php 
-        if (!empty($langues)) {
-            echo implode(", ", array_map('htmlspecialchars', $langues));
-        } else {
-            echo "Aucune langue sélectionnée";
-        }
-    ?>
-
-    <p><strong>Filière :</strong> <?= $filiere ?></p>
-    <p><strong>Année :</strong> <?= $annee ?></p>
-
-    <p><strong>Modules suivis :</strong> 
-    <?php 
-        if (!empty($modules)) {
-            echo implode(", ", array_map('htmlspecialchars', $modules));
-        } else {
-            echo "Aucun module sélectionné";
-        }
-        ?>
-  </p>
-        
-
-    <p><strong>Nombre de projets :</strong> <?= $nb_projets ?></p>
-
-    -->
-
-         <!-- Bouton Valider 
-    <form method="post">
-        <input type="hidden" name="Nom" value="<?= $Nom ?>">
-        <input type="hidden" name="Prenom" value="<?= $prenom ?>">
-        <input type="hidden" name="Email" value="<?= $email ?>">
-        <input type="hidden" name="Age" value="<?= $age ?>">
-        <input type="hidden" name="telephone" value="<?= $telephone ?>">
-        <input type="hidden" name="filiere" value="<?= $filiere ?>">
-        <input type="hidden" name="Annee" value="<?= $annee ?>">
-        <input type="hidden" name="nb_projets" value="<?= $nb_projets ?>">
-        <input type="hidden" name="projets" value="<?= htmlspecialchars($_POST['projets'] ?? '') ?>">
-        <input type="hidden" name="stages" value="<?= htmlspecialchars($_POST['stages'] ?? '') ?>">
-        <input type="hidden" name="centre_interet" value="<?= htmlspecialchars($_POST['centre_interet'] ?? '') ?>">
-
-        <?php foreach ($modules as $m): ?>
-            <input type="hidden" name="modules[]" value="<?= htmlspecialchars($m) ?>">
-        <?php endforeach; ?>
-
-        <?php foreach ($langues as $l): ?>
-            <input type="hidden" name="langues[]" value="<?= htmlspecialchars($l) ?>">
-        <?php endforeach; ?>
-
-        <button type="submit" name="action" value="valider">Valider</button>
-    </form><br>
-        -->
-    <!-- Bouton Modifier -->
-     <!--
-    <form method="post" action="formulaire.php">
-        <input type="hidden" name="Nom" value="<?= $Nom ?>">
-        <input type="hidden" name="Prenom" value="<?= $prenom ?>">
-        <input type="hidden" name="Email" value="<?= $email ?>">
-        <input type="hidden" name="Age" value="<?= $age ?>">
-        <input type="hidden" name="telephone" value="<?= $telephone ?>">
-        <input type="hidden" name="filiere" value="<?= $filiere ?>">
-        <input type="hidden" name="Annee" value="<?= $annee ?>">
-        <input type="hidden" name="nb_projets" value="<?= $nb_projets ?>">
-        <input type="hidden" name="projets" value="<?= htmlspecialchars($_POST['projets'] ?? '') ?>">
-        <input type="hidden" name="stages" value="<?= htmlspecialchars($_POST['stages'] ?? '') ?>">
-        <input type="hidden" name="centre_interet" value="<?= htmlspecialchars($_POST['centre_interet'] ?? '') ?>">
-
-        <?php foreach ($modules as $m): ?>
-            <input type="hidden" name="modules[]" value="<?= htmlspecialchars($m) ?>">
-        <?php endforeach; ?>
-        
-        <?php foreach ($langues as $l): ?>
-            <input type="hidden" name="langues[]" value="<?= htmlspecialchars($l) ?>">
-        <?php endforeach; ?>
-
-
-        <button type="submit">Modifier</button>
-    </form><br>
-        -->
-    <!-- Bouton Générer PDF 
-    <form action="pdf.php" method="post">
-        <button type="submit" name="action" value="generate_pdf">Générer PDF</button>
-    </form>
-        -->
         
 
 </body>

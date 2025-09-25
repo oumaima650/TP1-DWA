@@ -21,6 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
     $email = htmlspecialchars($_POST['Email'] ?? '');
     $age = htmlspecialchars($_POST['Age'] ?? '');
     $telephone = htmlspecialchars($_POST['telephone'] ?? '');
+    $linkedin = htmlspecialchars($_POST['LinkedIn'] ?? '');
     
     // Gestion des données textuelles longues (avec conversion des retours à la ligne)
     //strip_tags : supprime les balises HTML et PHP d'une chaîne avec des retours à la ligne conservés
@@ -36,6 +37,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
     $filiere = htmlspecialchars($_POST['filiere'] ?? 'Non renseigné');
     $annee = htmlspecialchars($_POST['Annee'] ?? 'Non renseigné');
     $nb_projets = htmlspecialchars($_POST['nb_projets'] ?? 'Non renseigné');
+    $competences = isset($_POST['competences']) ? $_POST['competences'] : [];
+
 
     // Gestion de la photo
     $photoPath = null;
@@ -61,57 +64,50 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
             // Redimensionner l'image si elle est trop grande
             list($width, $height) = getimagesize($photoPath);
             $ratio = $width / $height;
-            $newWidth = 40;
-            $newHeight = $newWidth / $ratio;
+            $newWidth = 45; // Largeur réduite pour le cadre
+            $newHeight = 45; // Hauteur fixe pour uniformiser
             
-            if ($newHeight > 50) {
-                $newHeight = 50;
-                $newWidth = $newHeight * $ratio;
-            }
-            
+            // Cadre pour la photo
+            $pdf->SetDrawColor(200, 200, 200); // Couleur grise pour le cadre
+            $pdf->SetLineWidth(0.5); // Épaisseur du cadre
+            $pdf->Rect(10, 10, $newWidth + 4, $newHeight + 4); // Cadre autour de la photo (+4mm de marge)
+
+            // Insertion de la photo
             $pdf->Image($photoPath, 10, 10, $newWidth, $newHeight);
+            
             // Nom à droite (aligné à droite)
-            $pdf->SetFont('Times', 'B', 40);
+            $pdf->SetFont('Times', 'B', 26);
             $pdf->SetTextColor(44, 62, 80);
-            $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
+            $pdf->SetXY(75, 15); // Position X=75mm pour éviter la photo
+            $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'L');
             $pdf->Ln(5);
             // Informations académiques structurées
             switch ($filiere) {
                 case 'gi':
-                    $filiere = 'génie Informatique';
+                    $filiere = 'génie informatique';
                     break;
-                case '2AP':
-                    $filiere = 'Développement d\'Applications et d\'Infrastructures Informatiques';
+                case '2ap':
+                    $filiere = 'cycle préparatoire';
                     break;
-                case 'GSTR':
-                    $filiere = 'Développement de Projets Informatiques';
+                case 'gstr':
+                    $filiere = 'génie des systèmes télécoms et réseaux';
                     break;
-                case 'SCM' :
-                    $filiere = 'Systèmes et Cloud Computing';
+                case 'scm':
+                    $filiere = 'supply chain management';
                     break;
-                case 'GC' :
-                    $filiere = 'Génie Cybernétique';
+                case 'gc':
+                    $filiere = 'génie civil';
                     break;
-                case 'MS' :
-                    $filiere = 'Maintenance des Systèmes';
+                case 'gm' :
+                    $filiere = 'génie mécatronique';
                     break;
                 default:
                     $filiere = 'Non renseigné';
             }
-            $pdf->SetFont('Times', 'B', 20);
-            $pdf->Cell(0 , 15 , utf8_decode('Etudiant en ' .$annee . ' ème année ' .$filiere . ' à l\'ENSA de Tétouan  '), 0, 1, 'R');
-            /*
-            $pdf->SetFont('Times', 'B', 20);
-            $pdf->Cell(20, 6, utf8_decode('Filière :' ), 0, 0, 'R');
-            $pdf->SetFont('Times', '', 20);
-            $pdf->Cell(0, 6, utf8_decode($filiere), 0, 1, 'R');
-            $pdf->Ln(5);
-            $pdf->SetFont('Times', 'B', 20);
-            $pdf->Cell(20, 6, utf8_decode('Année :' ), 0, 0, 'R');
-            $pdf->SetFont('Times', '', 20);
-            $pdf->Cell(0, 6, utf8_decode($annee . 'ème année'), 0, 1, 'R');
+            $pdf->SetFont('Times', 'B', 18);
+            $pdf->SetXY(75, 30);
+            $pdf->MultiCell(0 , 10 , utf8_decode('Etudiant en ' .$annee . ' ème année ' .$filiere . ' à l\'ENSA de Tétouan  '), 0,  'L');
             $pdf->Ln(3);
-            */
             // Ajuster la position Y pour la suite du contenu
             $photoBottom = 10 + $newHeight;
             $pdf->SetY(max($photoBottom + 5, 30)); // Au moins 30mm du haut
@@ -154,21 +150,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
         $pdf->Cell(0, 6, utf8_decode($annee . 'ème année'), 0, 1, 'R');
         $pdf->Ln(3);
     }
-/*
-    // Définition de la police pour le titre principal (Times, Gras, 20pt)
-    $pdf->SetFont('Times', 'B', 20);
-    // Définition de la couleur du texte (bleu foncé)
-    $pdf->SetTextColor(44, 62, 80);
+    $pdf->Ln(10); // Espace après l'en-tête
 
-    if ($photoPath && file_exists($photoPath)) {
-        $pdf->Cell(130, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
-        // Espace après la photo
-        $pdf->SetY(70);
-    } else {
-        $pdf->Cell(0, 10, utf8_decode($prenom . ' ' . $nom), 0, 1, 'R');
-        $pdf->Ln(5);
-    }
-*/
     // === FONCTION POUR CRÉER UNE SECTION ===
     // on a cree une fonction pour éviter la répétition de code pour chaque section
     function ajouterSection($pdf, $titre, $contenu) {
@@ -211,7 +194,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
     $infos_perso = [
         'Age' => $age . ' ans',
         'Téléphone' => $telephone,
-        'Email' => $email
+        'Email' => $email,
+        'LinkedIn' => $linkedin
     ];
     
     // Affichage de chaque information sur une ligne
@@ -223,9 +207,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['
     }
     $pdf->Ln(5);
 
-    // === MODULES ÉTUDIÉS ===
-    if (!empty($modules)) {
-        ajouterSection($pdf, 'MODULES ÉTUDIÉS', $modules);
+    // === COMPÉTENCES ===
+    if (!empty($competences)) {
+        ajouterSection($pdf, 'COMPÉTENCES', $competences);
     }
 
     // === PROJETS ===
