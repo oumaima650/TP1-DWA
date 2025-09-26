@@ -88,6 +88,75 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     echo $contenu;
     exit;
 }
+
+// ======= Début : insertion en BDD (AJOUTE ÇA ICI) =======
+require_once 'db.php'; // inclure la connexion PDO (fichier créé précédemment)
+
+// Normaliser / préparer les valeurs (les mêmes que dans le TXT)
+$nom = $_POST['Nom'] ?? '';
+$prenom = $_POST['Prenom'] ?? '';
+$email = $_POST['Email'] ?? '';
+$age = $_POST['Age'] ?? null;
+$telephone = $_POST['telephone'] ?? '';
+$filiere = $_POST['filiere'] ?? '';
+$annee = $_POST['Annee'] ?? '';
+$nb_projets = $_POST['nb_projets'] ?? '';
+$projets_raw = $_POST['projets'] ?? '';
+$stages_raw = $_POST['stages'] ?? '';
+$centre_interet_raw = $_POST['centre_interet'] ?? '';
+$modules = !empty($_POST['modules']) ? (array)$_POST['modules'] : [];
+$langues = !empty($_POST['langues']) ? (array)$_POST['langues'] : [];
+$competences = $_POST['competences'] ?? '';
+$remarques = $_POST['remarques'] ?? '';
+$fichier_for_db = $fichierURL ?? ($_POST['fichier_path'] ?? null);
+$photo_for_db = $photoURL ?? ($_POST['photo_path'] ?? null);
+
+// Convertir tableaux en CSV (pour stockage simple)
+$modules_csv = !empty($modules) ? implode(',', $modules) : '';
+$langues_csv = !empty($langues) ? implode(',', $langues) : '';
+
+try {
+    $sql = "INSERT INTO students
+      (nom, prenom, age, telephone, email, filiere, annee, modules, nb_projets, projets, stages, centre_interet, langues, photo, fichier, competences, remarques)
+      VALUES
+      (:nom,:prenom,:age,:telephone,:email,:filiere,:annee,:modules,:nb_projets,:projets,:stages,:centre_interet,:langues,:photo,:fichier,:competences,:remarques)
+      ON DUPLICATE KEY UPDATE
+        nom=VALUES(nom), prenom=VALUES(prenom), age=VALUES(age),
+        telephone=VALUES(telephone), filiere=VALUES(filiere),
+        annee=VALUES(annee), modules=VALUES(modules),
+        nb_projets=VALUES(nb_projets), projets=VALUES(projets),
+        stages=VALUES(stages), centre_interet=VALUES(centre_interet),
+        langues=VALUES(langues), photo=VALUES(photo),
+        fichier=VALUES(fichier), competences=VALUES(competences),
+        remarques=VALUES(remarques), updated_at=NOW()";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':nom' => $nom,
+        ':prenom' => $prenom,
+        ':age' => ($age !== '' ? (int)$age : null),
+        ':telephone' => $telephone,
+        ':email' => $email,
+        ':filiere' => $filiere,
+        ':annee' => $annee,
+        ':modules' => $modules_csv,
+        ':nb_projets' => $nb_projets,
+        ':projets' => $projets_raw,
+        ':stages' => $stages_raw,
+        ':centre_interet' => $centre_interet_raw,
+        ':langues' => $langues_csv,
+        ':photo' => $photo_for_db,
+        ':fichier' => $fichier_for_db,
+        ':competences' => $competences,
+        ':remarques' => $remarques
+    ]);
+
+} catch (Exception $e) {
+    // En cas d'erreur, tu peux logger ou afficher (en dev)
+    // file_put_contents('error_log.txt', $e->getMessage(), FILE_APPEND);
+    // Ne pas bloquer l'utilisateur si la BDD échoue — on continue et on donne le .txt
+}
+// ======= Fin insertion en BDD =======
 ?>
 
 <!DOCTYPE html>

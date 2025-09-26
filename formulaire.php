@@ -904,7 +904,7 @@
     <br><br>
 
 
-  <button type = "submit"> Submit </button><br><br>
+  <button type = "submit" class="submit-btn"> Submit </button><br><br>
 
 </form>
 
