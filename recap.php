@@ -59,36 +59,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Liste déroulante
     $nb_projets = isset($_POST['nb_projets']) ? htmlspecialchars($_POST['nb_projets']) : "Non renseigné";
 
-
-
-  if (isset($_POST['action']) && $_POST['action'] === "valider") {
-    $contenu = "Nom : $Nom\n";
-    $contenu .= "Prénom : $prenom\n";
-    $contenu .= "Email : $email\n";
-    $contenu .= "Âge : $age\n";
-    $contenu .= "Téléphone : $telephone\n";
-    $contenu .= "LinkedIn : " . (!empty($linkedin) ? $linkedin : "Non renseigné") . "\n";
-    $contenu .= "Filière : $filiere\n";
-    $contenu .= "Année : $annee\n";
-    $contenu .= "Modules : " . (!empty($modules) ? implode(", ", $modules) : "Aucun") . "\n";
-    $contenu .= "Nombre de projets : $nb_projets\n";
-    $contenu .= "Projets réalisés : " . (!empty($projets) ? strip_tags($projets) : "Non renseigné") . "\n";
-    $contenu .= "Stages réalisés : " . (!empty($stage) ? strip_tags($stage) : "Non renseigné") . "\n";
-    $contenu .= "Centres d'intérêt : " . (!empty($centre_interets) ? strip_tags($centre_interets) : "Non renseigné") . "\n";
-    $contenu .= "Compétences : " . (!empty($competences) ? strip_tags($competences) : "Non renseigné") . "\n";
-    $contenu .= "Langues : " . (!empty($langues) ? implode(", ", $langues) : "Aucune") . "\n";
-    $contenu .= "Remarques : " . (!empty($remarques) ? strip_tags($remarques) : "Non renseigné") . "\n";
-    $contenu .= "Fichier joint : " . (!empty($fichierURL) ? basename($fichierURL) : "Aucun") . "\n";
-
-    // Forcer le téléchargement
-    header('Content-Type: text/plain');
-    header('Content-Disposition: attachment; filename="informations.txt"');
-    header('Content-Length: ' . strlen($contenu));
-
-    echo $contenu;
-    exit;
-}
-
 // ======= Début : insertion en BDD (AJOUTE ÇA ICI) =======
 require_once 'db.php'; // inclure la connexion PDO (fichier créé précédemment)
 
@@ -157,6 +127,36 @@ try {
     // Ne pas bloquer l'utilisateur si la BDD échoue — on continue et on donne le .txt
 }
 // ======= Fin insertion en BDD =======
+
+  if (isset($_POST['action']) && $_POST['action'] === "valider") {
+    $contenu = "Nom : $Nom\n";
+    $contenu .= "Prénom : $prenom\n";
+    $contenu .= "Email : $email\n";
+    $contenu .= "Âge : $age\n";
+    $contenu .= "Téléphone : $telephone\n";
+    $contenu .= "LinkedIn : " . (!empty($linkedin) ? $linkedin : "Non renseigné") . "\n";
+    $contenu .= "Filière : $filiere\n";
+    $contenu .= "Année : $annee\n";
+    $contenu .= "Modules : " . (!empty($modules) ? implode(", ", $modules) : "Aucun") . "\n";
+    $contenu .= "Nombre de projets : $nb_projets\n";
+    $contenu .= "Projets réalisés : " . (!empty($projets) ? strip_tags($projets) : "Non renseigné") . "\n";
+    $contenu .= "Stages réalisés : " . (!empty($stage) ? strip_tags($stage) : "Non renseigné") . "\n";
+    $contenu .= "Centres d'intérêt : " . (!empty($centre_interets) ? strip_tags($centre_interets) : "Non renseigné") . "\n";
+    $contenu .= "Compétences : " . (!empty($competences) ? strip_tags($competences) : "Non renseigné") . "\n";
+    $contenu .= "Langues : " . (!empty($langues) ? implode(", ", $langues) : "Aucune") . "\n";
+    $contenu .= "Remarques : " . (!empty($remarques) ? strip_tags($remarques) : "Non renseigné") . "\n";
+    $contenu .= "Fichier joint : " . (!empty($fichierURL) ? basename($fichierURL) : "Aucun") . "\n";
+
+    // Forcer le téléchargement
+    header('Content-Type: text/plain');
+    header('Content-Disposition: attachment; filename="informations.txt"');
+    header('Content-Length: ' . strlen($contenu));
+
+    echo $contenu;
+    exit;
+}
+
+
 ?>
 
 <!DOCTYPE html>
